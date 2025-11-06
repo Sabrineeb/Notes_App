@@ -1,29 +1,32 @@
+// src/screens/HomeScreen.js
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
-export default function HomeScreen({ navigation }) {
+const HomeScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Notes App</Text>
+        <Text style={styles.headerTitle}>Notes App 📝</Text>
       </View>
 
+      {/* Content */}
       <View style={styles.content}>
-        <Text style={styles.welcomeText}>Welcome to Notes App</Text>
+        <Text style={styles.welcomeText}>Bienvenue dans NotesApp</Text>
         <Text style={styles.instructionText}>
-          Keep your ideas, lists, and reminders in one place
+          Gardez vos idées, listes et rappels en un seul endroit.
         </Text>
 
         <TouchableOpacity
           style={styles.notesButton}
           onPress={() => navigation.navigate("Notes")}
         >
-          <Text style={styles.buttonText}>Go to Notes</Text>
+          <Text style={styles.buttonText}>Aller à mes notes</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -32,14 +35,14 @@ const styles = StyleSheet.create({
   },
   header: {
     height: 100,
-    backgroundColor: "#3498db",
+    backgroundColor: "#2196F3",
     justifyContent: "flex-end",
     paddingBottom: 15,
     paddingHorizontal: 20,
   },
   headerTitle: {
     color: "white",
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: "bold",
   },
   content: {
@@ -53,18 +56,21 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 10,
     textAlign: "center",
+    color: "#333",
   },
   instructionText: {
     fontSize: 18,
     color: "#7f8c8d",
     textAlign: "center",
     marginBottom: 40,
+    lineHeight: 24,
   },
   notesButton: {
-    backgroundColor: "#3498db",
+    backgroundColor: "#2196F3",
     paddingVertical: 12,
     paddingHorizontal: 30,
     borderRadius: 8,
+    elevation: 2,
   },
   buttonText: {
     color: "white",
@@ -72,3 +78,5 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
+
+export default HomeScreen;
