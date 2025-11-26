@@ -7,7 +7,7 @@ import {
   Text,
   TouchableOpacity,
 } from "react-native";
-import { createNote } from "../services/note-service";
+import { addNote } from "../services/noteService";  // ✅ Fixed import
 
 const AddNoteModal = ({ visible, onClose, onNoteAdded }) => {
   const [title, setTitle] = useState("");
@@ -29,40 +29,42 @@ const AddNoteModal = ({ visible, onClose, onNoteAdded }) => {
   };
 
   // 🔹 Sauvegarder la note
-  const handleSave = async () => {
-    if (!title.trim() || !content.trim()) {
-      setError("Please fill in both title and content");
-      return;
-    }
+  // 🔹 Sauvegarder la note
+const handleSave = async () => {
+  if (!title.trim() || !content.trim()) {
+    setError("Please fill in both title and content");
+    return;
+  }
 
-    try {
-      setLoading(true);
-      setError(null);
+  try {
+    setLoading(true);
+    setError(null);
 
-      const noteData = {
-        title: title.trim(),
-        content: content.trim(),
-        userId: "test-user-id", // ⚠️ À remplacer plus tard par vrai ID utilisateur
-      };
+    const userId = "test-user-id"; // ⚠️ À remplacer plus tard par vrai ID utilisateur
+    
+    console.log("📤 Envoi vers Appwrite:", { 
+      title: title.trim(), 
+      content: content.trim(), 
+      userId 
+    });
 
-      console.log("📤 Envoi vers Appwrite:", noteData);
+    // ✅ Passer title et content séparément
+    const newNote = await addNote(title.trim(), content.trim(), userId);
+    console.log("✅ Réponse Appwrite:", newNote);
 
-      const newNote = await createNote(noteData);
-      console.log("✅ Réponse Appwrite:", newNote);
+    resetForm();
+    onClose();
 
-      resetForm();
-      onClose();
-
-      if (onNoteAdded) onNoteAdded(newNote);
-    } catch (err) {
-      console.error("❌ Erreur complète:", err);
-      setError(
-        err.message || "Failed to save note. Please try again."
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+    if (onNoteAdded) onNoteAdded(newNote);
+  } catch (err) {
+    console.error("❌ Erreur complète:", err);
+    setError(
+      err.message || "Failed to save note. Please try again."
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <Modal

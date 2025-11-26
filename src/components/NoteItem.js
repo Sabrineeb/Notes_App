@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
-import { deleteNote } from "../services/note-service";
+import { deleteNote } from "../services/noteService";  // ✅ Fixed import
 import EditNoteModal from "./EditNoteModal";
 
 const NoteItem = ({ note, onNoteDeleted, onNoteUpdated }) => {
@@ -51,7 +51,7 @@ const NoteItem = ({ note, onNoteDeleted, onNoteUpdated }) => {
     <View style={styles.container}>
       <TouchableOpacity style={styles.content} onPress={handleEdit}>
         <Text style={styles.title}>{note.title}</Text>
-        <Text style={styles.date}>Dernière maj : {formatDate(note.updatedAt)}</Text>
+        <Text style={styles.date}>Dernière maj : {formatDate(note.$updatedAt)}</Text>
         <Text style={styles.noteContent} numberOfLines={3}>{note.content}</Text>
       </TouchableOpacity>
 

@@ -1,15 +1,13 @@
-// src/components/EditNoteModal.js
 import React, { useState, useEffect } from "react";
 import {
   Modal,
   View,
   TextInput,
-  Button,
   StyleSheet,
   Text,
   TouchableOpacity,
 } from "react-native";
-import { updateNote } from "../services/note-service";
+import { updateNote } from "../services/noteService";  // ✅ Fixed import
 
 const EditNoteModal = ({ visible, onClose, onNoteUpdated, note }) => {
   const [title, setTitle] = useState("");
@@ -17,7 +15,7 @@ const EditNoteModal = ({ visible, onClose, onNoteUpdated, note }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Initialize form with note data when it changes
+  // 🔹 Populate form when note changes
   useEffect(() => {
     if (note) {
       setTitle(note.title || "");
@@ -25,20 +23,21 @@ const EditNoteModal = ({ visible, onClose, onNoteUpdated, note }) => {
     }
   }, [note]);
 
-  // Reset form state
+  // 🔹 Reset form
   const resetForm = () => {
+    setTitle("");
+    setContent("");
     setError(null);
   };
 
-  // Close modal and reset form
+  // 🔹 Close modal
   const handleClose = () => {
     resetForm();
     onClose();
   };
 
-  // Save the updated note
+  // 🔹 Save updated note
   const handleSave = async () => {
-    // Basic form validation
     if (!title.trim() || !content.trim()) {
       setError("Please fill in both title and content");
       return;
@@ -48,33 +47,27 @@ const EditNoteModal = ({ visible, onClose, onNoteUpdated, note }) => {
       setLoading(true);
       setError(null);
 
-      // Prepare update data
-      const updateData = {
+      const updatedData = {
         title: title.trim(),
         content: content.trim(),
       };
 
-      // Call update note service
-      const updatedNote = await updateNote(note.$id, updateData);
+      console.log("📤 Updating note:", note.$id, updatedData);
 
-      // Reset form and close modal
+      const updatedNote = await updateNote(note.$id, updatedData);
+      console.log("✅ Note updated:", updatedNote);
+
       resetForm();
       onClose();
 
-      // Notify parent component about the updated note
-      if (onNoteUpdated) {
-        onNoteUpdated(updatedNote);
-      }
+      if (onNoteUpdated) onNoteUpdated(updatedNote);
     } catch (err) {
-      console.error("Error updating note:", err);
-      setError("Failed to update note. Please try again.");
+      console.error("❌ Update error:", err);
+      setError(err.message || "Failed to update note. Please try again.");
     } finally {
       setLoading(false);
     }
   };
-
-  // Don't render if no note is provided
-  if (!note) return null;
 
   return (
     <Modal
@@ -131,7 +124,6 @@ const EditNoteModal = ({ visible, onClose, onNoteUpdated, note }) => {
 };
 
 const styles = StyleSheet.create({
-  // Same styles as AddNoteModal
   centeredView: {
     flex: 1,
     justifyContent: "center",
@@ -144,10 +136,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 20,
     shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,

@@ -1,86 +1,103 @@
-import React, { useEffect, useState } from "react";
+// screens/NotesScreen.js
+import React, { useEffect, useState, useContext } from "react";
 import {
   View,
   Text,
   FlatList,
   TouchableOpacity,
-  StyleSheet,
   ActivityIndicator,
+  StyleSheet,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import AddNoteModal from "../components/AddNoteModal";
+import { getNotes, deleteNote } from "../services/noteService";
 import NoteItem from "../components/NoteItem";
-import { getNotes } from "../services/note-service";
+import AddNoteModal from "../components/AddNoteModal";
+import { AuthContext } from "../contexts/AuthContext";
 
 const NotesScreen = () => {
   const [notes, setNotes] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isAddModalVisible, setIsAddModalVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const { user } = useContext(AuthContext);
 
+  // 🔹 Fetch notes from Appwrite
   const fetchNotes = async () => {
+    setIsLoading(true);
     try {
-      setLoading(true);
-      const notesList = await getNotes();
-      setNotes(notesList);
+      const fetchedNotes = await getNotes(user.$id);
+      setNotes(fetchedNotes);
     } catch (error) {
-      console.error("Erreur de chargement des notes :", error);
+      console.error("❌ Failed to fetch notes:", error);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchNotes();
-  }, []);
+    if (user) fetchNotes();
+  }, [user]);
 
+  // 🔹 Handle note added
   const handleNoteAdded = (newNote) => {
-    setNotes((prev) => [newNote, ...prev]);
-    setIsModalVisible(false);
+    setNotes([newNote, ...notes]);
   };
 
+  // 🔹 Handle note deleted
   const handleNoteDeleted = (noteId) => {
-    setNotes((prev) => prev.filter((note) => note.$id !== noteId));
+    setNotes(notes.filter((note) => note.$id !== noteId));
   };
 
+  // 🔹 Handle note updated
   const handleNoteUpdated = (updatedNote) => {
-    setNotes((prev) =>
-      prev.map((note) => (note.$id === updatedNote.$id ? updatedNote : note))
-    );
+    setNotes(notes.map((note) => (note.$id === updatedNote.$id ? updatedNote : note)));
   };
+
+  // 🔹 Empty list component
+  const renderEmptyComponent = () => (
+    <View style={styles.emptyContainer}>
+      <Text style={styles.emptyText}>You don't have any notes yet.</Text>
+      <Text style={styles.emptySubtext}>
+        Tap the + button to create your first note!
+      </Text>
+    </View>
+  );
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Mes Notes</Text>
-        <TouchableOpacity onPress={() => setIsModalVisible(true)}>
-          <Ionicons name="add-circle" size={36} color="#4CAF50" />
-        </TouchableOpacity>
-      </View>
+      <FlatList
+        data={notes}
+        renderItem={({ item }) => (
+          <NoteItem
+            note={item}
+            onNoteDeleted={handleNoteDeleted}
+            onNoteUpdated={handleNoteUpdated}
+          />
+        )}
+        keyExtractor={(item) => item.$id}
+        contentContainerStyle={notes.length === 0 ? { flex: 1 } : {}}
+        ListEmptyComponent={!isLoading && renderEmptyComponent()}
+      />
 
-      {loading ? (
-        <ActivityIndicator size="large" color="#4CAF50" />
-      ) : (
-        <FlatList
-          data={notes}
-          keyExtractor={(item) => item.$id}
-          renderItem={({ item }) => (
-            <NoteItem
-              note={item}
-              onNoteDeleted={handleNoteDeleted}
-              onNoteUpdated={handleNoteUpdated}
-            />
-          )}
-          contentContainerStyle={styles.listContent}
-          refreshing={loading}
-          onRefresh={fetchNotes}
-        />
-      )}
+      {/* Floating add button */}
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={() => setIsAddModalVisible(true)}
+      >
+        <Text style={styles.addButtonText}>+</Text>
+      </TouchableOpacity>
 
+      {/* Add note modal */}
       <AddNoteModal
-        visible={isModalVisible}
-        onClose={() => setIsModalVisible(false)}
+        visible={isAddModalVisible}
+        onClose={() => setIsAddModalVisible(false)}
         onNoteAdded={handleNoteAdded}
       />
+
+      {/* Loading overlay */}
+      {isLoading && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#0000ff" />
+        </View>
+      )}
     </View>
   );
 };
@@ -88,23 +105,50 @@ const NotesScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9F9F9",
-    paddingHorizontal: 16,
-    paddingTop: 40,
+    backgroundColor: "#fff",
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
     alignItems: "center",
-    marginBottom: 16,
+    padding: 20,
   },
-  headerTitle: {
-    fontSize: 28,
+  emptyText: {
+    fontSize: 18,
     fontWeight: "bold",
-    color: "#333",
+    marginBottom: 10,
   },
-  listContent: {
-    paddingBottom: 100,
+  emptySubtext: {
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
+  },
+  addButton: {
+    position: "absolute",
+    right: 20,
+    bottom: 30,
+    backgroundColor: "#007bff",
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  addButtonText: {
+    color: "#fff",
+    fontSize: 32,
+    lineHeight: 32,
+  },
+  loadingContainer: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(255,255,255,0.7)",
   },
 });
 
